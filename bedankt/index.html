@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html lang="nl">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="robots" content="noindex" />
+    <title>Bedankt voor uw donatie! - Stichting Poezenbende</title>
+    <link
+      href="https://fonts.googleapis.com/css?family=Roboto:300,400,900"
+      rel="stylesheet"
+    />
+    <style>
+      /* ponytail: same self-contained approach as /landing/, styles copied instead of loading the bootstrap stack */
+      * {
+        box-sizing: border-box;
+      }
+      body {
+        margin: 0;
+        font-family: "Roboto", Arial, sans-serif;
+        min-height: 100vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: url("/images/cat1.jpg") center/cover no-repeat fixed;
+        position: relative;
+      }
+      body::before {
+        content: "";
+        position: fixed;
+        inset: 0;
+        background: rgba(0, 0, 0, 0.5);
+      }
+      main {
+        position: relative;
+        max-width: 28rem;
+        margin: 2rem 1rem;
+        padding: 2.5rem 2rem;
+        text-align: center;
+        background: #fff;
+        border-radius: 0.5rem;
+        box-shadow: 0 1rem 3rem rgba(0, 0, 0, 0.3);
+      }
+      h1 {
+        font-weight: 900;
+        font-size: 1.8rem;
+        margin: 0 0 0.75rem;
+        color: #212529;
+      }
+      p {
+        line-height: 1.7;
+        color: #666;
+        margin: 0 0 1.5rem;
+      }
+      main img {
+        width: 100%;
+        border-radius: 0.5rem;
+        margin-bottom: 1.5rem;
+      }
+      .btn {
+        display: block;
+        margin: 0.75rem 0;
+        padding: 0.9rem 1rem;
+        border-radius: 2rem;
+        text-decoration: none;
+        font-weight: 700;
+        color: #fff;
+        background: #46ddb0;
+        transition: opacity 0.2s;
+      }
+      .btn:hover {
+        opacity: 0.85;
+      }
+    </style>
+  </head>
+  <body>
+    <main>
+      <h1>Heel erg bedankt voor uw donatie!</h1>
+      <img
+        src="/images/cats_thanks.jpeg"
+        alt="Kittens van Stichting Poezenbende zeggen dankjewel"
+      />
+      <p>
+        Dankzij u krijgen ik en mijn kindjes een fijne toekomst. Uw bijdrage gaat
+        rechtstreeks naar de opvang, voeding en medische zorg van zwerf- en
+        verwilderde katten en kittens in nood. Namens ons allemaal: dankuwel!
+      </p>
+      <a class="btn" href="/">Terug naar de website</a>
+    </main>
+  </body>
+</html>
