@@ -1,5 +1,5 @@
 import {
-  addDoc, collection, deleteDoc, doc, getDocs, serverTimestamp, setDoc,
+  addDoc, collection, deleteDoc, doc, getDocs, serverTimestamp, setDoc, updateDoc,
 } from 'https://www.gstatic.com/firebasejs/13.0.0/firebase-firestore.js';
 import {
   getAuth, onAuthStateChanged, signInWithEmailAndPassword, signOut,
@@ -9,6 +9,28 @@ import { CACHE_KEY } from './katten-cache.js';
 
 const auth = getAuth(app);
 const $ = (id) => document.getElementById(id);
+
+// Set while editing an existing cat; null means the form adds a new one.
+let bewerkRef = null;
+
+function startBewerken(d) {
+  bewerkRef = d.ref;
+  $('naam').value = d.data().naam;
+  $('tekst').value = d.data().tekst;
+  $('foto').required = false;
+  $('form-titel').textContent = `${d.data().naam} bewerken (foto leeg laten = huidige houden)`;
+  $('annuleren').hidden = false;
+  $('status').textContent = '';
+  $('nieuw').scrollIntoView({ behavior: 'smooth' });
+}
+
+function stopBewerken() {
+  bewerkRef = null;
+  $('nieuw').reset();
+  $('foto').required = true;
+  $('form-titel').textContent = 'Kat toevoegen';
+  $('annuleren').hidden = true;
+}
 
 // Shrinks until the base64 fits well under the 400 KB rule limit (1 MiB doc max).
 async function compress(file) {
@@ -49,16 +71,21 @@ async function toonLijst() {
     const naam = document.createElement('span');
     naam.className = 'flex-grow-1';
     naam.textContent = d.data().naam;
+    const bewerk = document.createElement('button');
+    bewerk.className = 'btn btn-outline-secondary btn-sm mr-2';
+    bewerk.textContent = 'Bewerken';
+    bewerk.onclick = () => startBewerken(d);
     const knop = document.createElement('button');
     knop.className = 'btn btn-outline-danger btn-sm';
     knop.textContent = 'Verwijderen';
     knop.onclick = async () => {
       if (!confirm(`${d.data().naam} van de website halen?`)) return;
       await deleteDoc(d.ref);
+      if (bewerkRef?.id === d.id) stopBewerken();
       await bumpVersie();
       await toonLijst();
     };
-    li.append(img, naam, knop);
+    li.append(img, naam, bewerk, knop);
     lijst.append(li);
   }
   if (!docs.length) lijst.textContent = 'Er staan nu geen katten op de website.';
@@ -81,15 +108,16 @@ $('nieuw').onsubmit = async (e) => {
   $('status').className = 'mt-2 mb-0';
   $('status').textContent = 'Bezig met opslaan...';
   try {
-    const foto = await compress($('foto').files[0]);
-    await addDoc(collection(db, 'katten'), {
-      naam: $('naam').value.trim(),
-      tekst: $('tekst').value.trim(),
-      foto,
-      aangemaakt: serverTimestamp(),
-    });
+    const velden = { naam: $('naam').value.trim(), tekst: $('tekst').value.trim() };
+    const bestand = $('foto').files[0];
+    if (bestand) velden.foto = await compress(bestand);
+    if (bewerkRef) {
+      await updateDoc(bewerkRef, velden);
+    } else {
+      await addDoc(collection(db, 'katten'), { ...velden, aangemaakt: serverTimestamp() });
+    }
     await bumpVersie();
-    e.target.reset();
+    stopBewerken();
     $('status').textContent = 'Opgeslagen! Bezoekers zien het binnen een uur.';
     await toonLijst();
   } catch (err) {
@@ -100,6 +128,8 @@ $('nieuw').onsubmit = async (e) => {
     knop.disabled = false;
   }
 };
+
+$('annuleren').onclick = stopBewerken;
 
 $('uitloggen').onclick = () => signOut(auth);
 

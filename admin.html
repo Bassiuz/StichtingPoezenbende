@@ -20,11 +20,14 @@
 
       <div id="beheer" hidden>
         <form id="nieuw" class="card card-body mb-4">
-          <h2 class="h5">Kat toevoegen</h2>
+          <h2 id="form-titel" class="h5">Kat toevoegen</h2>
           <input id="naam" class="form-control mb-2" placeholder="Naam" maxlength="60" required />
           <textarea id="tekst" class="form-control mb-2" rows="4" placeholder="Korte beschrijving" maxlength="1000"></textarea>
           <input id="foto" type="file" accept="image/*" class="form-control-file mb-2" required />
-          <button class="btn btn-primary">Opslaan</button>
+          <div>
+            <button class="btn btn-primary">Opslaan</button>
+            <button id="annuleren" type="button" class="btn btn-link" hidden>Annuleren</button>
+          </div>
           <p id="status" class="mt-2 mb-0"></p>
         </form>
 
