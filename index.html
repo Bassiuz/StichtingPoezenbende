@@ -45,6 +45,7 @@
     <link rel="stylesheet" href="css/aos.css" />
 
     <link rel="stylesheet" href="css/style.css" />
+    <link rel="stylesheet" href="css/katten.css" />
   </head>
   <div id="fb-root"></div>
   <script
@@ -209,6 +210,25 @@
           </p>
         </div>
       </section>
+
+      <div class="modal fade" id="kat-modal" tabindex="-1" role="dialog" aria-labelledby="kat-modal-naam" aria-hidden="true">
+        <div class="modal-dialog modal-lg modal-dialog-centered" role="document">
+          <div class="modal-content border-0 overflow-hidden">
+            <div class="kat-modal-foto-wrap">
+              <img id="kat-modal-foto" alt="" />
+              <button type="button" class="close kat-modal-sluit" data-dismiss="modal" aria-label="Sluiten">
+                <span aria-hidden="true">&times;</span>
+              </button>
+            </div>
+            <div id="kat-modal-thumbs"></div>
+            <div class="modal-body p-4">
+              <h3 id="kat-modal-naam" class="text-dark mb-3"></h3>
+              <p id="kat-modal-tekst" class="kat-modal-tekst mb-4"></p>
+              <a href="tel:+31627407553" class="btn btn-primary btn-lg">Bel 06-27407553 om te adopteren</a>
+            </div>
+          </div>
+        </div>
+      </div>
       <section class="site-section bg-light border-bottom">
         <div class="container">
           <div class="row mb-5">

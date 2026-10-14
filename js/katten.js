@@ -26,35 +26,90 @@ async function fetchVersie() {
 async function fetchKatten() {
   const snap = await getDocs(collection(db, 'katten'));
   return snap.docs
-    .map((d) => d.data())
+    .map((d) => ({ id: d.id, ...d.data() }))
     .sort((a, b) => b.aangemaakt.toMillis() - a.aangemaakt.toMillis())
-    .map(({ naam, tekst, foto }) => ({ naam, tekst, foto }));
+    .map(({ id, naam, tekst, foto, extraFotos = 0 }) => ({ id, naam, tekst, foto, extraFotos }));
+}
+
+// Extra photos are read only when a visitor opens that cat, once per page load.
+const extraCache = new Map();
+async function fetchExtra(kat) {
+  if (!kat.id || !kat.extraFotos) return [];
+  if (!extraCache.has(kat.id)) {
+    extraCache.set(kat.id, getDoc(doc(db, 'fotos', kat.id))
+      .then((snap) => (snap.exists() ? snap.data().fotos : []))
+      .catch(() => []));
+  }
+  return extraCache.get(kat.id);
+}
+
+function toonFoto(fotos, index) {
+  $('#kat-modal-foto').attr('src', fotos[index]);
+  $('#kat-modal-thumbs img').each((i, img) => img.classList.toggle('actief', i === index));
+}
+
+async function openKat(kat) {
+  $('#kat-modal-naam').text(kat.naam);
+  $('#kat-modal-tekst').text(kat.tekst);
+  const thumbs = document.getElementById('kat-modal-thumbs');
+  thumbs.replaceChildren();
+  let fotos = [kat.foto];
+  let index = 0;
+  toonFoto(fotos, 0);
+  $('#kat-modal-foto').off('click').on('click', () => {
+    index = (index + 1) % fotos.length;
+    toonFoto(fotos, index);
+  });
+  $('#kat-modal').modal('show');
+  const extra = await fetchExtra(kat);
+  if (!extra.length) return;
+  fotos = [kat.foto, ...extra];
+  fotos.forEach((foto, i) => {
+    const img = document.createElement('img');
+    img.src = foto;
+    img.alt = `${kat.naam} foto ${i + 1}`;
+    img.onclick = () => { index = i; toonFoto(fotos, i); };
+    thumbs.append(img);
+  });
+  toonFoto(fotos, index);
 }
 
 function renderKatten(katten) {
   const section = document.getElementById('katten-section');
   if (!katten.length) return;
   const carousel = section.querySelector('.katten-carousel');
-  for (const kat of katten) {
+  katten.forEach((kat, i) => {
     const item = document.createElement('div');
-    item.className = 'text-center px-2';
+    item.className = 'kat text-center';
+    item.dataset.index = i;
+    item.tabIndex = 0;
+    item.setAttribute('role', 'button');
     const img = document.createElement('img');
     img.src = kat.foto;
     img.alt = kat.naam;
     img.className = 'rounded mb-3';
-    img.style.cssText = 'width:100%;height:320px;object-fit:cover';
     const naam = document.createElement('h4');
     naam.textContent = kat.naam;
     const tekst = document.createElement('p');
+    tekst.className = 'kat-tekst';
     tekst.textContent = kat.tekst;
-    item.append(img, naam, tekst);
+    const meer = document.createElement('span');
+    meer.className = 'text-primary';
+    meer.textContent = 'Meer over ' + kat.naam + ' →';
+    item.append(img, naam, tekst, meer);
     carousel.append(item);
-  }
+  });
+  // Delegated, because owl's loop mode clones the items.
+  $(carousel).on('click keydown', '.kat', (e) => {
+    if (e.type === 'keydown' && e.key !== 'Enter') return;
+    openKat(katten[e.currentTarget.dataset.index]);
+  });
   section.hidden = false;
   $(carousel).owlCarousel({
     loop: katten.length > 3,
-    margin: 20,
+    margin: 30,
     nav: true,
+    dots: false,
     navText: ['<span class="icon-arrow_back">', '<span class="icon-arrow_forward">'],
     responsive: { 0: { items: 1 }, 768: { items: 2 }, 1000: { items: 3 } },
   });

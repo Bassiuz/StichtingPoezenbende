@@ -23,7 +23,11 @@
           <h2 id="form-titel" class="h5">Kat toevoegen</h2>
           <input id="naam" class="form-control mb-2" placeholder="Naam" maxlength="60" required />
           <textarea id="tekst" class="form-control mb-2" rows="4" placeholder="Korte beschrijving" maxlength="1000"></textarea>
-          <input id="foto" type="file" accept="image/*" class="form-control-file mb-2" required />
+          <label for="foto" class="small mb-1">Hoofdfoto</label>
+          <input id="foto" type="file" accept="image/*" class="form-control-file mb-3" required />
+          <label for="extra" class="small mb-1">Extra foto's (max 5)</label>
+          <input id="extra" type="file" accept="image/*" multiple class="form-control-file mb-2" />
+          <div id="extra-lijst" class="d-flex flex-wrap mb-2"></div>
           <div>
             <button class="btn btn-primary">Opslaan</button>
             <button id="annuleren" type="button" class="btn btn-link" hidden>Annuleren</button>

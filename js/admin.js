@@ -1,5 +1,5 @@
 import {
-  addDoc, collection, deleteDoc, doc, getDocs, serverTimestamp, setDoc, updateDoc,
+  collection, doc, getDoc, getDocs, serverTimestamp, writeBatch,
 } from 'https://www.gstatic.com/firebasejs/13.0.0/firebase-firestore.js';
 import {
   getAuth, onAuthStateChanged, signInWithEmailAndPassword, signOut,
@@ -9,31 +9,63 @@ import { CACHE_KEY } from './katten-cache.js';
 
 const auth = getAuth(app);
 const $ = (id) => document.getElementById(id);
+const MAX_EXTRA = 5;
 
 // Set while editing an existing cat; null means the form adds a new one.
 let bewerkRef = null;
+// Extra photos (data URLs) of the cat in the form, saved together on submit.
+let extraFotos = [];
 
-function startBewerken(d) {
+function toonExtra() {
+  const lijst = $('extra-lijst');
+  lijst.replaceChildren();
+  extraFotos.forEach((foto, i) => {
+    const wrap = document.createElement('div');
+    wrap.className = 'position-relative mr-2 mb-2';
+    const img = document.createElement('img');
+    img.src = foto;
+    img.alt = '';
+    img.className = 'rounded';
+    img.style.cssText = 'width:64px;height:64px;object-fit:cover';
+    const weg = document.createElement('button');
+    weg.type = 'button';
+    weg.className = 'btn btn-danger btn-sm position-absolute py-0 px-1';
+    weg.style.cssText = 'top:-6px;right:-6px;line-height:1.2';
+    weg.textContent = '×';
+    weg.setAttribute('aria-label', 'Foto verwijderen');
+    weg.onclick = () => { extraFotos.splice(i, 1); toonExtra(); };
+    wrap.append(img, weg);
+    lijst.append(wrap);
+  });
+}
+
+async function startBewerken(d) {
   bewerkRef = d.ref;
   $('naam').value = d.data().naam;
   $('tekst').value = d.data().tekst;
   $('foto').required = false;
-  $('form-titel').textContent = `${d.data().naam} bewerken (foto leeg laten = huidige houden)`;
+  $('form-titel').textContent = `${d.data().naam} bewerken (hoofdfoto leeg laten = huidige houden)`;
   $('annuleren').hidden = false;
   $('status').textContent = '';
   $('nieuw').scrollIntoView({ behavior: 'smooth' });
+  const snap = await getDoc(doc(db, 'fotos', d.id));
+  extraFotos = snap.exists() ? snap.data().fotos : [];
+  toonExtra();
 }
 
 function stopBewerken() {
   bewerkRef = null;
+  extraFotos = [];
+  toonExtra();
   $('nieuw').reset();
   $('foto').required = true;
   $('form-titel').textContent = 'Kat toevoegen';
   $('annuleren').hidden = true;
 }
 
-// Shrinks until the base64 fits well under the 400 KB rule limit (1 MiB doc max).
-async function compress(file) {
+// Shrinks until the base64 fits under maxLength. Main photo 350 KB (rule limit 400 KB);
+// extras 180 KB each so five of them fit in one 1 MiB document.
+async function compress(file, maxLength) {
   const bitmap = await createImageBitmap(file);
   for (const width of [1000, 800, 600, 400]) {
     const scale = Math.min(1, width / bitmap.width);
@@ -44,14 +76,15 @@ async function compress(file) {
     let url = canvas.toDataURL('image/webp', 0.7);
     // Older Safari cannot encode WebP and silently returns PNG.
     if (!url.startsWith('data:image/webp')) url = canvas.toDataURL('image/jpeg', 0.7);
-    if (url.length < 350000) return url;
+    if (url.length < maxLength) return url;
   }
   throw new Error('Foto is te groot, probeer een andere.');
 }
 
 // Bumping the version makes visitors' caches refetch; clearing ours shows it here at once.
-async function bumpVersie() {
-  await setDoc(doc(db, 'meta', 'versie'), { v: serverTimestamp() });
+async function commitMetVersie(batch) {
+  batch.set(doc(db, 'meta', 'versie'), { v: serverTimestamp() });
+  await batch.commit();
   localStorage.removeItem(CACHE_KEY);
 }
 
@@ -80,9 +113,11 @@ async function toonLijst() {
     knop.textContent = 'Verwijderen';
     knop.onclick = async () => {
       if (!confirm(`${d.data().naam} van de website halen?`)) return;
-      await deleteDoc(d.ref);
+      const batch = writeBatch(db);
+      batch.delete(d.ref);
+      batch.delete(doc(db, 'fotos', d.id));
+      await commitMetVersie(batch);
       if (bewerkRef?.id === d.id) stopBewerken();
-      await bumpVersie();
       await toonLijst();
     };
     li.append(img, naam, bewerk, knop);
@@ -101,6 +136,26 @@ $('login').onsubmit = async (e) => {
   }
 };
 
+$('extra').onchange = async (e) => {
+  const bestanden = [...e.target.files];
+  e.target.value = '';
+  $('status').className = 'mt-2 mb-0';
+  if (extraFotos.length + bestanden.length > MAX_EXTRA) {
+    $('status').className = 'text-danger mt-2 mb-0';
+    $('status').textContent = `Maximaal ${MAX_EXTRA} extra foto's.`;
+    return;
+  }
+  $('status').textContent = "Foto's verkleinen...";
+  try {
+    for (const bestand of bestanden) extraFotos.push(await compress(bestand, 180000));
+    $('status').textContent = '';
+  } catch (err) {
+    $('status').className = 'text-danger mt-2 mb-0';
+    $('status').textContent = err.message;
+  }
+  toonExtra();
+};
+
 $('nieuw').onsubmit = async (e) => {
   e.preventDefault();
   const knop = e.submitter;
@@ -108,15 +163,21 @@ $('nieuw').onsubmit = async (e) => {
   $('status').className = 'mt-2 mb-0';
   $('status').textContent = 'Bezig met opslaan...';
   try {
-    const velden = { naam: $('naam').value.trim(), tekst: $('tekst').value.trim() };
+    const velden = {
+      naam: $('naam').value.trim(),
+      tekst: $('tekst').value.trim(),
+      extraFotos: extraFotos.length,
+    };
     const bestand = $('foto').files[0];
-    if (bestand) velden.foto = await compress(bestand);
-    if (bewerkRef) {
-      await updateDoc(bewerkRef, velden);
-    } else {
-      await addDoc(collection(db, 'katten'), { ...velden, aangemaakt: serverTimestamp() });
-    }
-    await bumpVersie();
+    if (bestand) velden.foto = await compress(bestand, 350000);
+    const ref = bewerkRef ?? doc(collection(db, 'katten'));
+    const batch = writeBatch(db);
+    if (bewerkRef) batch.update(ref, velden);
+    else batch.set(ref, { ...velden, aangemaakt: serverTimestamp() });
+    const fotosRef = doc(db, 'fotos', ref.id);
+    if (extraFotos.length) batch.set(fotosRef, { fotos: extraFotos });
+    else batch.delete(fotosRef);
+    await commitMetVersie(batch);
     stopBewerken();
     $('status').textContent = 'Opgeslagen! Bezoekers zien het binnen een uur.';
     await toonLijst();

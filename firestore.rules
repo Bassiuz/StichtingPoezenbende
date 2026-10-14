@@ -8,17 +8,28 @@ service cloud.firestore {
     }
 
     function isValidKat(d) {
-      return d.keys().hasOnly(['naam', 'tekst', 'foto', 'aangemaakt'])
+      return d.keys().hasOnly(['naam', 'tekst', 'foto', 'aangemaakt', 'extraFotos'])
         && d.naam is string && d.naam.size() > 0 && d.naam.size() <= 60
         && d.tekst is string && d.tekst.size() <= 1000
         && d.foto is string && d.foto.matches('^data:image/(webp|jpeg);base64,.*')
         && d.foto.size() <= 400000
-        && d.aangemaakt is timestamp;
+        && d.aangemaakt is timestamp
+        && (!('extraFotos' in d) || (d.extraFotos is int && d.extraFotos >= 0 && d.extraFotos <= 5));
     }
 
     match /katten/{id} {
       allow read: if true;
       allow create, update: if isAdmin() && isValidKat(request.resource.data);
+      allow delete: if isAdmin();
+    }
+
+    // Extra photos per cat, read only when a visitor opens that cat.
+    match /fotos/{id} {
+      allow read: if true;
+      allow create, update: if isAdmin()
+        && request.resource.data.keys().hasOnly(['fotos'])
+        && request.resource.data.fotos is list
+        && request.resource.data.fotos.size() <= 5;
       allow delete: if isAdmin();
     }
 

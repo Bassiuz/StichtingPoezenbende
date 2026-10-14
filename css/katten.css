@@ -1,0 +1,98 @@
+/* Adoption cats carousel and pop-up, see js/katten.js. */
+.katten-carousel .kat {
+  cursor: pointer;
+  padding-bottom: 8px;
+}
+.katten-carousel .kat img {
+  width: 100%;
+  height: 320px;
+  object-fit: cover;
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+.katten-carousel .kat:hover img,
+.katten-carousel .kat:focus img {
+  transform: translateY(-4px);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
+}
+.katten-carousel .kat-tekst {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  margin-bottom: 4px;
+}
+
+/* Round arrows centred on the photos (photo height 320px). Owl 2.2.1 renders them as divs. */
+.katten-carousel .owl-nav .owl-prev,
+.katten-carousel .owl-nav .owl-next {
+  position: absolute;
+  top: 160px;
+  transform: translateY(-50%);
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  background: #fff;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.25);
+  font-size: 22px;
+  line-height: 48px;
+  text-align: center;
+  color: #333;
+}
+.katten-carousel .owl-nav .owl-prev { left: -24px; }
+.katten-carousel .owl-nav .owl-next { right: -24px; }
+.katten-carousel .owl-nav .disabled { opacity: 0.3; cursor: default; }
+@media (max-width: 767px) {
+  .katten-carousel .owl-nav .owl-prev { left: 8px; }
+  .katten-carousel .owl-nav .owl-next { right: 8px; }
+}
+
+.kat-modal-foto-wrap {
+  position: relative;
+  background: #111;
+}
+#kat-modal-foto {
+  display: block;
+  width: 100%;
+  max-height: 65vh;
+  object-fit: contain;
+  cursor: pointer;
+}
+/* The sticky site header sits at z-index 2000. */
+#kat-modal { z-index: 2050; }
+.modal-backdrop { z-index: 2040; }
+.kat-modal-sluit {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  width: 40px;
+  height: 40px;
+  padding: 0;
+  border-radius: 50%;
+  background: #fff;
+  opacity: 0.9;
+  font: 400 28px/40px Arial, sans-serif;
+  color: #000;
+  text-shadow: none;
+}
+#kat-modal-thumbs {
+  display: flex;
+  flex-wrap: wrap;
+  padding: 12px 24px 0;
+}
+#kat-modal-thumbs:empty { display: none; }
+#kat-modal-thumbs img {
+  width: 64px;
+  height: 64px;
+  object-fit: cover;
+  border-radius: 4px;
+  margin: 0 8px 8px 0;
+  cursor: pointer;
+  opacity: 0.6;
+}
+#kat-modal-thumbs img.actief { opacity: 1; outline: 2px solid currentColor; }
+.kat-modal-tekst {
+  color: #333;
+  font-size: 1.1rem;
+  line-height: 1.7;
+  white-space: pre-line;
+}

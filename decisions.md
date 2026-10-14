@@ -7,3 +7,8 @@
 - Visitors cache the list in localStorage for an hour. After that they read only `meta/versie`
   and refetch the cats only when the admin page has bumped it.
 - Write access is an allowlist (`admin/{uid}`), so an accidentally enabled sign-up grants nothing.
+
+## 2026-10-14 – Extra photos in a separate document
+- Up to 5 extra photos per cat live in `fotos/{katId}` (about 180 KB each, so they fit one 1 MiB doc).
+  They are read only when a visitor opens that cat, keeping the homepage at 0–1 reads and the
+  localStorage cache small. The cat doc keeps `extraFotos` (a count) so cats without extras cost no read.
