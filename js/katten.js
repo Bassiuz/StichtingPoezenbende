@@ -43,35 +43,66 @@ async function fetchExtra(kat) {
   return extraCache.get(kat.id);
 }
 
-function toonFoto(fotos, index) {
-  $('#kat-modal-foto').attr('src', fotos[index]);
-  $('#kat-modal-thumbs img').each((i, img) => img.classList.toggle('actief', i === index));
+// The photo strip is a native CSS scroll-snap row, so touch swipe and trackpad work without a library.
+const strip = () => document.getElementById('kat-modal-fotos');
+
+function huidigeIndex() {
+  return Math.round(strip().scrollLeft / strip().clientWidth);
 }
+
+function gaNaar(index) {
+  const aantal = strip().children.length;
+  const i = (index + aantal) % aantal;
+  strip().scrollTo({ left: i * strip().clientWidth, behavior: 'smooth' });
+}
+
+function markeerActief() {
+  const index = huidigeIndex();
+  document.querySelectorAll('#kat-modal-thumbs img').forEach((img, i) => img.classList.toggle('actief', i === index));
+}
+
+function vulFotos(kat, fotos) {
+  strip().replaceChildren(...fotos.map((foto, i) => {
+    const img = document.createElement('img');
+    img.src = foto;
+    img.alt = `${kat.naam} foto ${i + 1}`;
+    return img;
+  }));
+  const thumbs = document.getElementById('kat-modal-thumbs');
+  thumbs.replaceChildren();
+  if (fotos.length > 1) {
+    fotos.forEach((foto, i) => {
+      const img = document.createElement('img');
+      img.src = foto;
+      img.alt = '';
+      img.onclick = () => gaNaar(i);
+      thumbs.append(img);
+    });
+  }
+  $('.kat-modal-pijl').prop('hidden', fotos.length < 2);
+  markeerActief();
+}
+
+let scrollTimer;
+strip().addEventListener('scroll', () => {
+  clearTimeout(scrollTimer);
+  scrollTimer = setTimeout(markeerActief, 50);
+});
+$('#kat-modal-vorige').on('click', () => gaNaar(huidigeIndex() - 1));
+$('#kat-modal-volgende').on('click', () => gaNaar(huidigeIndex() + 1));
+$('#kat-modal').on('keydown', (e) => {
+  if (e.key === 'ArrowLeft') gaNaar(huidigeIndex() - 1);
+  if (e.key === 'ArrowRight') gaNaar(huidigeIndex() + 1);
+});
 
 async function openKat(kat) {
   $('#kat-modal-naam').text(kat.naam);
   $('#kat-modal-tekst').text(kat.tekst);
-  const thumbs = document.getElementById('kat-modal-thumbs');
-  thumbs.replaceChildren();
-  let fotos = [kat.foto];
-  let index = 0;
-  toonFoto(fotos, 0);
-  $('#kat-modal-foto').off('click').on('click', () => {
-    index = (index + 1) % fotos.length;
-    toonFoto(fotos, index);
-  });
+  vulFotos(kat, [kat.foto]);
+  strip().scrollLeft = 0;
   $('#kat-modal').modal('show');
   const extra = await fetchExtra(kat);
-  if (!extra.length) return;
-  fotos = [kat.foto, ...extra];
-  fotos.forEach((foto, i) => {
-    const img = document.createElement('img');
-    img.src = foto;
-    img.alt = `${kat.naam} foto ${i + 1}`;
-    img.onclick = () => { index = i; toonFoto(fotos, i); };
-    thumbs.append(img);
-  });
-  toonFoto(fotos, index);
+  if (extra.length) vulFotos(kat, [kat.foto, ...extra]);
 }
 
 function renderKatten(katten) {

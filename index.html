@@ -215,7 +215,13 @@
         <div class="modal-dialog modal-lg modal-dialog-centered" role="document">
           <div class="modal-content border-0 overflow-hidden">
             <div class="kat-modal-foto-wrap">
-              <img id="kat-modal-foto" alt="" />
+              <div id="kat-modal-fotos"></div>
+              <button type="button" id="kat-modal-vorige" class="kat-modal-pijl" aria-label="Vorige foto" hidden>
+                <span class="icon-arrow_back"></span>
+              </button>
+              <button type="button" id="kat-modal-volgende" class="kat-modal-pijl" aria-label="Volgende foto" hidden>
+                <span class="icon-arrow_forward"></span>
+              </button>
               <button type="button" class="close kat-modal-sluit" data-dismiss="modal" aria-label="Sluiten">
                 <span aria-hidden="true">&times;</span>
               </button>
