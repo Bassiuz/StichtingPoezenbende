@@ -1,0 +1,32 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Only users with a doc at admins/{uid} may write; sign-up alone grants nothing.
+    function isAdmin() {
+      return request.auth != null
+        && exists(/databases/$(database)/documents/admins/$(request.auth.uid));
+    }
+
+    function isValidKat(d) {
+      return d.keys().hasOnly(['naam', 'tekst', 'foto', 'aangemaakt'])
+        && d.naam is string && d.naam.size() > 0 && d.naam.size() <= 60
+        && d.tekst is string && d.tekst.size() <= 1000
+        && d.foto is string && d.foto.matches('^data:image/(webp|jpeg);base64,.*')
+        && d.foto.size() <= 400000
+        && d.aangemaakt is timestamp;
+    }
+
+    match /katten/{id} {
+      allow read: if true;
+      allow create, update: if isAdmin() && isValidKat(request.resource.data);
+      allow delete: if isAdmin();
+    }
+
+    match /meta/versie {
+      allow read: if true;
+      allow write: if isAdmin()
+        && request.resource.data.keys().hasOnly(['v'])
+        && request.resource.data.v == request.time;
+    }
+  }
+}

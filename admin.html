@@ -1,0 +1,38 @@
+<!doctype html>
+<html lang="nl">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="robots" content="noindex" />
+    <title>Beheer – Stichting Poezenbende</title>
+    <link rel="stylesheet" href="css/bootstrap.min.css" />
+  </head>
+  <body class="bg-light">
+    <main class="container py-4" style="max-width: 640px">
+      <h1 class="h3 mb-4">Adoptiekatten beheren</h1>
+
+      <form id="login" class="card card-body" hidden>
+        <input id="email" type="email" class="form-control mb-2" placeholder="E-mail" autocomplete="username" required />
+        <input id="wachtwoord" type="password" class="form-control mb-2" placeholder="Wachtwoord" autocomplete="current-password" required />
+        <button class="btn btn-primary">Inloggen</button>
+        <p id="login-fout" class="text-danger mt-2 mb-0"></p>
+      </form>
+
+      <div id="beheer" hidden>
+        <form id="nieuw" class="card card-body mb-4">
+          <h2 class="h5">Kat toevoegen</h2>
+          <input id="naam" class="form-control mb-2" placeholder="Naam" maxlength="60" required />
+          <textarea id="tekst" class="form-control mb-2" rows="4" placeholder="Korte beschrijving" maxlength="1000"></textarea>
+          <input id="foto" type="file" accept="image/*" class="form-control-file mb-2" required />
+          <button class="btn btn-primary">Opslaan</button>
+          <p id="status" class="mt-2 mb-0"></p>
+        </form>
+
+        <h2 class="h5">Op de website</h2>
+        <ul id="lijst" class="list-unstyled"></ul>
+        <button id="uitloggen" class="btn btn-link px-0">Uitloggen</button>
+      </div>
+    </main>
+    <script type="module" src="js/admin.js"></script>
+  </body>
+</html>

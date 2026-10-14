@@ -198,6 +198,17 @@
           </div>
         </div>
       </div>
+      <!-- Filled from Firestore by js/katten.js; stays hidden when there are no cats. -->
+      <section class="site-section border-bottom" id="katten-section" hidden>
+        <div class="container">
+          <h3 class="section-sub-title text-primary">Ter adoptie</h3>
+          <h2 class="section-title mb-4">Deze katten zoeken een gouden mandje</h2>
+          <div class="owl-carousel katten-carousel"></div>
+          <p class="lead mt-4">
+            Interesse in een van onze katten? Bel ons op 06-27407553.
+          </p>
+        </div>
+      </section>
       <section class="site-section bg-light border-bottom">
         <div class="container">
           <div class="row mb-5">
@@ -1302,5 +1313,6 @@
     <script src="js/jquery.sticky.js"></script>
 
     <script src="js/main.js"></script>
+    <script type="module" src="js/katten.js"></script>
   </body>
 </html>
