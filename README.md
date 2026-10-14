@@ -10,4 +10,4 @@ hidden while there are no cats.
 - Deploy rules: `firebase deploy --only firestore:rules --account devaan.bas@gmail.com`
 - Test the cache logic: `node js/katten-cache.test.mjs`
 - Give someone write access: create the user under Authentication, then add an empty
-  document `admins/{uid}` in Firestore.
+  document `admin/{uid}` in Firestore.

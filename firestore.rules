@@ -1,10 +1,10 @@
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
-    // Only users with a doc at admins/{uid} may write; sign-up alone grants nothing.
+    // Only users with a doc at admin/{uid} may write; sign-up alone grants nothing.
     function isAdmin() {
       return request.auth != null
-        && exists(/databases/$(database)/documents/admins/$(request.auth.uid));
+        && exists(/databases/$(database)/documents/admin/$(request.auth.uid));
     }
 
     function isValidKat(d) {

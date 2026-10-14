@@ -6,4 +6,4 @@
   where hitting the quota means a stale carousel, never a bill.
 - Visitors cache the list in localStorage for an hour. After that they read only `meta/versie`
   and refetch the cats only when the admin page has bumped it.
-- Write access is an allowlist (`admins/{uid}`), so an accidentally enabled sign-up grants nothing.
+- Write access is an allowlist (`admin/{uid}`), so an accidentally enabled sign-up grants nothing.
