@@ -1,4 +1,4 @@
-import { collection, doc, getDoc, getDocs } from 'https://www.gstatic.com/firebasejs/13.0.0/firebase-firestore.js';
+import { collection, doc, getDoc, getDocs, query, where } from 'https://www.gstatic.com/firebasejs/13.0.0/firebase-firestore.js';
 import { db } from './firebase.js';
 import { CACHE_KEY, loadKatten } from './katten-cache.js';
 
@@ -24,7 +24,7 @@ async function fetchVersie() {
 }
 
 async function fetchKatten() {
-  const snap = await getDocs(collection(db, 'katten'));
+  const snap = await getDocs(query(collection(db, 'katten'), where('verborgen', '==', false)));
   return snap.docs
     .map((d) => ({ id: d.id, ...d.data() }))
     .sort((a, b) => b.aangemaakt.toMillis() - a.aangemaakt.toMillis())

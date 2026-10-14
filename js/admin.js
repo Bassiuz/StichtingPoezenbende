@@ -101,9 +101,26 @@ async function toonLijst() {
     img.alt = '';
     img.style.cssText = 'width:64px;height:64px;object-fit:cover';
     img.className = 'rounded mr-3';
+    const verborgen = d.data().verborgen === true;
+    if (verborgen) img.style.opacity = '0.4';
     const naam = document.createElement('span');
     naam.className = 'flex-grow-1';
     naam.textContent = d.data().naam;
+    if (verborgen) {
+      const label = document.createElement('span');
+      label.className = 'badge badge-secondary ml-2';
+      label.textContent = 'verborgen';
+      naam.append(label);
+    }
+    const zichtbaar = document.createElement('button');
+    zichtbaar.className = 'btn btn-outline-secondary btn-sm mr-2';
+    zichtbaar.textContent = verborgen ? 'Tonen' : 'Verbergen';
+    zichtbaar.onclick = async () => {
+      const batch = writeBatch(db);
+      batch.update(d.ref, { verborgen: !verborgen });
+      await commitMetVersie(batch);
+      await toonLijst();
+    };
     const bewerk = document.createElement('button');
     bewerk.className = 'btn btn-outline-secondary btn-sm mr-2';
     bewerk.textContent = 'Bewerken';
@@ -120,7 +137,7 @@ async function toonLijst() {
       if (bewerkRef?.id === d.id) stopBewerken();
       await toonLijst();
     };
-    li.append(img, naam, bewerk, knop);
+    li.append(img, naam, zichtbaar, bewerk, knop);
     lijst.append(li);
   }
   if (!docs.length) lijst.textContent = 'Er staan nu geen katten op de website.';
@@ -173,7 +190,7 @@ $('nieuw').onsubmit = async (e) => {
     const ref = bewerkRef ?? doc(collection(db, 'katten'));
     const batch = writeBatch(db);
     if (bewerkRef) batch.update(ref, velden);
-    else batch.set(ref, { ...velden, aangemaakt: serverTimestamp() });
+    else batch.set(ref, { ...velden, verborgen: false, aangemaakt: serverTimestamp() });
     const fotosRef = doc(db, 'fotos', ref.id);
     if (extraFotos.length) batch.set(fotosRef, { fotos: extraFotos });
     else batch.delete(fotosRef);
